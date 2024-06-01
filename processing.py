@@ -19,10 +19,10 @@ model = YOLO('traffic_analysis.pt')
 def upload_video():
     try:
         video_file = request.files['video']
-        print("Video file received:", video_file)  # Добавим отладочное сообщение для проверки, что файл пришел
+        print("Получен файл видео:", video_file)  
     except Exception as e:
-        print("Error while receiving video file:", e)
-        return jsonify({"status": "error", "message": "Error while receiving video file"})
+        print("Ошибка при получении файла видео:", e)
+        return jsonify({"status": "error", "message": "Ошибка при получении файла видео"})
     video_path = f'videos/{video_file.filename}'
     video_file.save(video_path)
     video_capture = cv2.VideoCapture(video_path)
@@ -68,7 +68,7 @@ def upload_video():
     out.release()
     cv2.destroyAllWindows()
 
-    return jsonify({"status": "success", "message": "Video processed successfully"}), 200
+    return jsonify({"status": "success", "message": "Видео успешно обработано"}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
