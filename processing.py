@@ -11,7 +11,6 @@ app = Flask(__name__)
 
 client = MongoClient('localhost', 27017)
 db = client['MadiTracker']
-collection = db['data']
 
 model = YOLO('traffic_analysis.pt')
 
@@ -19,10 +18,13 @@ model = YOLO('traffic_analysis.pt')
 def upload_video():
     try:
         video_file = request.files['video']
-        print("Получен файл видео:", video_file)  
+        username = request.form['username']
+        print("Получен файл видео:", video_file)
+        print("Имя пользователя:", username)
     except Exception as e:
-        print("Ошибка при получении файла видео:", e)
-        return jsonify({"status": "error", "message": "Ошибка при получении файла видео"})
+        print("Ошибка при получении данных:", e)
+        return jsonify({"status": "error", "message": "Ошибка при получении данных"})
+
     video_path = f'videos/{video_file.filename}'
     video_file.save(video_path)
     video_capture = cv2.VideoCapture(video_path)
@@ -39,8 +41,10 @@ def upload_video():
     if success:
         rectangles = select_rectangles(frame)
 
+    user_collection = db[username]
+
     while video_capture.isOpened():
-        success, frame = video_capture.read(frame)
+        success, frame = video_capture.read()
         if success:
             results = model.track(frame, persist=True)
             json_object = []
@@ -52,7 +56,7 @@ def upload_video():
                 json_object.extend(json_data)
 
             if json_object:
-                collection.insert_many(json_object)
+                user_collection.insert_many(json_object)
 
             cap_number += 1
             annotated_frame = results[0].plot()
